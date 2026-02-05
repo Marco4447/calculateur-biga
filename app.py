@@ -16,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Calculateur Expert & Température de Coulage</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Calculateur Phase 2 & Friction Pétrin</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
@@ -25,12 +25,25 @@ with st.sidebar:
     farine_par_paton = st.number_input("Farine par pâton (g)", value=150, step=10)
     
     st.divider()
-    st.header("🌡️ Eau de Coulage (Biga)")
-    # Application de votre règle : 55 - (T Farine + T Ambiante)
-    st.write("Règle : 55 - (T. Farine + T. Amb)")
-    t_amb = st.number_input("Temp. Ambiante (°C)", value=30)
-    t_far = st.number_input("Temp. Farine (°C)", value=20)
-    t_eau_coulage = 55 - (t_amb + t_far)
+    st.header("🌀 Friction du Pétrin")
+    type_petrin = st.selectbox("Type de pétrissage", 
+                                ["Manuel", "Spirale (Vitesse 1)", "Spirale (Vitesse 2)"])
+    
+    # Attribution du coefficient de friction
+    frictions = {"Manuel": 2, "Spirale (Vitesse 1)": 8, "Spirale (Vitesse 2)": 14}
+    friction_val = frictions[type_petrin]
+    
+    st.write(f"Friction estimée : +{friction_val}°C")
+    
+    st.divider()
+    st.header("🌡️ Température de l'Eau (Phase 2)")
+    t_amb_p2 = st.number_input("Temp. Ambiante (°C)", value=22)
+    t_far_p2 = st.number_input("Temp. Farine (°C)", value=20)
+    t_pate_cible = st.slider("Temp. Pâte visée (°C)", 22, 26, 24)
+    
+    # Formule : (3 * Cible) - (Air + Farine + Friction)
+    # Note : On considère la Biga à 18°C comme faisant partie de la masse farine/air
+    t_eau_p2 = (3 * t_pate_cible) - (t_amb_p2 + t_far_p2 + friction_val)
 
     st.divider()
     st.header("🧪 Ratios Recette")
@@ -47,13 +60,10 @@ with st.sidebar:
 
 # 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
-
-# Phase 1 : Biga
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = farine_totale * (pct_biga_eau / 100)
 p_levure_biga = farine_totale * (pct_biga_levure / 100)
 
-# Phase 2 : Rafraîchissement
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
@@ -66,20 +76,17 @@ st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine")
 
 c1, c2 = st.columns(2)
 with c1:
-    st.subheader("📦 Phase 1 : Biga (J-1)")
+    st.subheader("📦 Phase 1 : Biga (18h à 18°C)")
     st.metric("Farine Biga", f"{int(p_farine_biga)} g")
     st.metric("Eau Biga", f"{int(p_eau_biga)} g")
-    # Affichage de la température de coulage selon votre exemple
-    st.metric("Temp. Eau Biga", f"{t_eau_coulage} °C")
-    st.metric("Levure (1%)", f"{int(p_levure_biga)} g")
+    st.metric("Levure", f"{int(p_levure_biga)} g")
 
 with c2:
-    st.subheader("🥣 Phase 2 : Jour J")
+    st.subheader("🥣 Phase 2 : Rafraîchissement")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
+    st.metric("Temp. Eau idéale", f"{int(t_eau_p2)} °C")
     st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
-    st.metric("Sel & Huile", f"{int(p_sel + p_huile)} g")
-    st.metric("Malt", f"{p_malt:.1f} g")
+    st.metric("Sel, Huile & Malt", f"{int(p_sel + p_huile + p_malt)} g")
 
 st.divider()
-poids_total_pate = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
-st.info(f"⚖️ Poids total : **{int(poids_total_pate)}g** | Poids/pâton : **{int(poids_total_pate/nb_patons)}g**")
+st.info(f"💡 Friction appliquée ({type_petrin}) : **{friction_val}°C**")
