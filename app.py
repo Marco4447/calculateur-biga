@@ -1,7 +1,7 @@
 import streamlit as st
 
 # 1. CONFIGURATION DE LA PAGE
-st.set_page_config(page_title="Biga Master - Consultapizza", layout="centered")
+st.set_page_config(page_title="Calculateur Biga MYPIZZATEACHER", layout="centered")
 
 st.markdown("""
     <style>
@@ -18,8 +18,9 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🍕 Calculateur Biga Master")
-st.write("Méthode paramétrable avec ajustement dynamique de la Biga.")
+# TITRE MODIFIÉ
+st.title("🍕 Calculateur Biga MYPIZZATEACHER")
+st.write("Expertise en fermentations indirectes et hydratations poussées.")
 
 # 2. BARRE LATÉRALE - PARAMÈTRES RÉGLABLES
 with st.sidebar:
@@ -29,7 +30,7 @@ with st.sidebar:
     
     st.divider()
     st.subheader("🧪 Ratios Finaux")
-    # Modification : Plage de 50% à 100%
+    # Plage étendue de 50% à 100%
     hydra_totale = st.slider("Hydratation Totale (%)", 50, 100, 70)
     sel_pct = st.slider("Sel (%)", 2.0, 3.5, 2.5, step=0.1)
     malt_pct = st.slider("Malt / Sucre (%)", 0.0, 3.0, 1.0, step=0.1)
@@ -38,7 +39,7 @@ with st.sidebar:
     st.subheader("🛠️ Paramétrage Biga")
     pct_farine_biga = st.slider("% de farine en Biga", 10, 100, 30)
     
-    # LOGIQUE SPÉCIFIQUE : Si Hydra Totale = 100%, alors Hydra Biga = 55%, sinon 44%
+    # LOGIQUE DYNAMIQUE : Si Hydra Totale = 100%, Hydra Biga = 55%, sinon 44%
     if hydra_totale == 100:
         hydra_biga_fixe = 55
     else:
@@ -49,6 +50,7 @@ with st.sidebar:
 
 # 3. MOTEUR DE CALCUL
 poids_total_cible = nb_patons * poids_paton
+# Calcul de la farine totale nécessaire (Base 100%)
 farine_totale = poids_total_cible / (1 + (hydra_totale/100) + (sel_pct/100) + (malt_pct/100))
 
 # PHASE 1 : LA BIGA (J-1)
@@ -65,7 +67,7 @@ malt_total = farine_totale * (malt_pct / 100)
 
 # 4. AFFICHAGE DES RÉSULTATS
 st.header(f"📊 Pour {nb_patons} pâtons de {poids_paton}g")
-st.write(f"Cible : {hydra_totale}% d'hydratation (Biga à {hydra_biga_fixe}%)")
+st.write(f"Cible : **{hydra_totale}%** d'hydratation (Biga à **{hydra_biga_fixe}%**)")
 
 col1, col2 = st.columns(2)
 
@@ -83,4 +85,4 @@ with col2:
     st.metric("Malt", f"{malt_total:.1f} g")
 
 st.divider()
-st.info(f"Farine totale utilisée : {int(farine_totale)} g | Eau totale : {int(eau_totale_recette)} g")
+st.info(f"Farine totale : {int(farine_totale)} g | Eau totale : {int(eau_totale_recette)} g")
