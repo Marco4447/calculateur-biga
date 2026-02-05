@@ -8,7 +8,6 @@ st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
     .main-title { text-align: center; color: #FF8C00; font-family: 'Helvetica', sans-serif; font-size: 2.8rem; font-weight: 800; margin-top: -40px; }
-    .sub-title { text-align: center; color: #BBBBBB; font-style: italic; margin-bottom: 2rem; }
     div[data-testid="stMetric"] { background-color: #1E1E1E; border: 1px solid #333; padding: 15px; border-radius: 12px; }
     [data-testid="stMetricValue"] { color: #FF8C00 !important; font-weight: bold; font-size: 1.6rem !important; }
     section[data-testid="stSidebar"] { background-color: #1A1A1A; border-right: 1px solid #333; }
@@ -51,7 +50,7 @@ with st.sidebar:
 # 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
 
-# Phase 1 : Biga
+# Phase 1 : Biga (Calculée sur la farine totale)
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_farine_biga * (pct_biga_eau_val / 100)
 p_levure_g = farine_totale * 0.01 
@@ -67,9 +66,33 @@ p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
 p_malt_g = farine_totale * (malt_pct / 100)
 
-# Calcul des coûts individuels
-c_farine = (farine_totale / 1000) * p_farine
-c_huile = (p_huile_g / 1000) * p_huile
-c_sel = (p_sel_g / 1000) * p_sel
-c_malt = (p_malt_g / 1000) * p_malt
-c_levure = (p_levure_g /
+# Coûts
+cout_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_malt_g/1000)*p_malt) + ((p_levure_g/1000)*p_levure) + ((eau_totale_cible/1000)*0.004)
+
+# 4. AFFICHAGE DES RÉSULTATS
+st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("📦 Phase 1 : Biga (J-1)")
+    st.metric("Farine Biga", f"{int(p_farine_biga)} g")
+    st.metric("Eau Biga", f"{int(p_eau_biga)} g")
+    st.metric("Levure (1%)", f"{p_levure_g:.1f} g")
+    st.metric("Temp. Eau Biga", f"{int(t_eau_biga_result)} °C")
+
+with col2:
+    st.subheader("🥣 Phase 2 : Jour J")
+    st.metric("Eau à ajouter", f"{int(eau_reste)} g")
+    st.metric("Temp. Eau idéale", f"{int(t_eau_p2_result)} °C")
+    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
+    st.metric("Sel", f"{p_sel_g:.1f} g")
+    st.metric("Huile", f"{p_huile_g:.1f} g")
+    st.metric("Malt", f"{p_malt_g:.1f} g")
+
+st.divider()
+st.subheader("💰 Coût de Revient & Poids")
+cc1, cc2, cc3 = st.columns(3)
+cc1.metric("Coût Total", f"{cout_total:.2f} €")
+cc2.metric("Coût par Pâton", f"{(cout_total/nb_patons):.2f} €")
+poids_f = (farine_totale + eau_totale_cible + p_sel_g + p_huile_g + p_malt_g + p_levure_g) / nb_patons
+cc3.metric("Poids Pâton fini", f"{int(poids_f)} g")
