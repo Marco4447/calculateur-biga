@@ -16,12 +16,11 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Calculateur de précision MYPIZZATEACHER</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Logiciel de calcul haute précision</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
     st.header("🍕 Base de Farine")
-    # On définit la farine totale comme base de calcul (votre 1000g par exemple)
     farine_totale = st.number_input("Farine Totale (g)", value=1000, step=100)
     
     st.divider()
@@ -29,35 +28,33 @@ with st.sidebar:
     hydra_totale_pct = st.slider("Hydratation Totale (%)", 50, 100, 56)
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
-    malt_pct = st.slider("Malt / Sucre (%)", 0.0, 3.0, 1.0, step=0.1)
+    
+    # MODIFICATION ICI : Curseur Malt avec un pas de 0.5
+    malt_pct = st.slider("Malt / Sucre (%)", 0.0, 3.0, 1.0, step=0.5)
     
     st.divider()
     st.header("🛠️ Config Biga")
     pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 100)
     
-    # RÈGLE MARCO : Si Biga 100%, alors Hydra Biga 55%. Sinon 44%.
+    # RÈGLE MARCO : Si Biga 100% -> Hydra 55%. Sinon 44%.
     pct_biga_eau = 55 if pct_biga_farine == 100 else 44
     pct_biga_levure = 1
 
-# 3. MOTEUR DE CALCUL (LOGIQUE SÉCURISÉE)
-# Phase 1 : Biga (proportionnelle à la farine totale)
+# 3. MOTEUR DE CALCUL
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = farine_totale * (pct_biga_eau / 100)
 p_levure_biga = farine_totale * (pct_biga_levure / 100)
 
-# Phase 2 : Rafraîchissement (Différentiel)
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
 
-# Ingrédients finaux (toujours sur base farine totale)
 p_sel = farine_totale * (sel_pct / 100)
 p_huile = farine_totale * (huile_pct / 100)
 p_malt = farine_totale * (malt_pct / 100)
 
 # 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine")
-st.write(f"Config : Biga **{pct_biga_farine}%** | Eau Biga **{pct_biga_eau}%**")
+st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine")
 
 c1, c2 = st.columns(2)
 with c1:
@@ -71,8 +68,8 @@ with c2:
     st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
     st.metric("Sel & Huile", f"{int(p_sel + p_huile)} g")
-    st.metric("Malt", f"{int(p_malt)} g")
+    st.metric("Malt", f"{p_malt:.1f} g") # Affichage avec une décimale pour le 0.5
 
 st.divider()
-poids_final = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
-st.info(f"⚖️ Poids total de la pâte : **{int(poids_final)} g**")
+poids_total = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
+st.info(f"⚖️ Poids total de la pâte : **{poids_total:.0f} g**")
