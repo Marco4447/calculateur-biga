@@ -3,7 +3,7 @@ import streamlit as st
 # 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
-# STYLE CSS SOMBRE
+# STYLE CSS SOMBRE PROFESSIONNEL
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -34,7 +34,7 @@ with st.sidebar:
     st.header("🌀 Friction Spirale (Phase 2)")
     t_v1 = st.number_input("Temps en Vitesse 1 (min)", value=5, min_value=0)
     t_v2 = st.number_input("Temps en Vitesse 2 (min)", value=8, min_value=0)
-    # Calcul de friction : 0.5 par min en V1, 1.3 par min en V2
+    # Calcul friction : 0.5 par min en V1 + 1.3 par min en V2
     friction_calculee = (t_v1 * 0.5) + (t_v2 * 1.3)
     
     st.divider()
@@ -56,15 +56,40 @@ farine_totale = nb_patons * farine_par_paton
 # --- PHASE 1 : BIGA ---
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = farine_totale * (pct_biga_eau_val / 100)
-p_levure_biga = farine_totale * 0.01  # 1% fixe
-# Règle 55 - (Temp Air + Temp Farine)
+p_levure_biga = farine_totale * 0.01 
 t_eau_biga_result = 55 - (t_amb + t_far)
 
 # --- PHASE 2 : RAFRAÎCHISSEMENT ---
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
-# Règle (3 * 24) - (Temp Air + Temp Farine + Friction)
 t_eau_p2_result = (3 * 24) - (t_amb + t_far + friction_calculee)
 
-p_sel = farine_totale * (sel_pct /
+p_sel = farine_totale * (sel_pct / 100)
+p_huile = farine_totale * (huile_pct / 100)
+p_malt = farine_totale * (malt_pct / 100)
+
+# 4. AFFICHAGE DES RÉSULTATS
+st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📦 Phase 1 : Biga (J-1)")
+    st.metric("Farine Biga", f"{int(p_farine_biga)} g")
+    st.metric("Eau Biga", f"{int(p_eau_biga)} g")
+    st.metric("Temp. Eau Biga", f"{int(t_eau_biga_result)} °C")
+    st.metric("Levure", f"{int(p_levure_biga)} g")
+
+with col2:
+    st.subheader("🥣 Phase 2 : Jour J")
+    st.metric("Eau à ajouter", f"{int(eau_reste)} g")
+    st.metric("Temp. Eau idéale", f"{int(t_eau_p2_result)} °C")
+    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
+    st.metric("Sel", f"{p_sel:.1f} g")
+    st.metric("Huile", f"{p_huile:.1f} g")
+    st.metric("Malt", f"{p_malt:.1f} g")
+
+st.divider()
+poids_final = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
+st.info(f"⚖️ Poids total : **{int(poids_final)}g** | Friction : **+{friction_calculee:.1f}°C**")
