@@ -29,6 +29,7 @@ with st.sidebar:
     hydra_totale_pct = st.slider("Hydratation Totale (%)", 50, 100, 56)
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
+    malt_pct = st.slider("Malt / Sucre (%)", 0.0, 3.0, 1.0, step=0.1)
     
     st.divider()
     st.header("🛠️ Config Biga")
@@ -51,26 +52,4 @@ f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
 p_sel = farine_totale * (sel_pct / 100)
-p_huile = farine_totale * (huile_pct / 100)
-
-# 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine totale")
-st.write(f"Configuration : Biga **{pct_biga_farine}%** | Eau Biga **{pct_biga_eau}%**")
-
-c1, c2 = st.columns(2)
-with c1:
-    st.subheader("📦 Phase 1 : Biga (J-1)")
-    st.metric("Farine Biga", f"{int(p_farine_biga)} g")
-    st.metric("Eau Biga", f"{int(p_eau_biga)} g")
-    st.metric("Levure", f"{int(p_levure_biga)} g")
-
-with c2:
-    st.subheader("🥣 Phase 2 : Jour J")
-    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
-    st.metric("Eau à ajouter", f"{int(eau_reste)} g")
-    st.metric("Sel", f"{int(p_sel)} g")
-    st.metric("Huile", f"{int(p_huile)} g")
-
-st.divider()
-poids_total = farine_totale + eau_totale_cible + p_sel + p_huile
-st.info(f"⚖️ Poids total de la pâte : **{int(poids_total)} g**")
+p_huile = farine_totale * (huile_pct / 10
