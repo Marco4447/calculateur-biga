@@ -20,9 +20,9 @@ st.markdown('<p class="sub-title">Calculateur de précision MYPIZZATEACHER</p>',
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
-    st.header("🍕 Format de la Recette")
-    nb_patons = st.number_input("Nombre de sessions", value=1, min_value=1)
-    farine_par_session = st.number_input("Farine par session (g)", value=1000, step=100)
+    st.header("🍕 Base de Farine")
+    # On définit la farine totale comme base de calcul (votre 1000g par exemple)
+    farine_totale = st.number_input("Farine Totale (g)", value=1000, step=100)
     
     st.divider()
     st.header("🧪 Ratios Recette")
@@ -39,17 +39,40 @@ with st.sidebar:
     pct_biga_eau = 55 if pct_biga_farine == 100 else 44
     pct_biga_levure = 1
 
-# 3. MOTEUR DE CALCUL (LOGIQUE MARCO)
-farine_totale = nb_patons * farine_par_session
-
-# Phase 1 : Biga
+# 3. MOTEUR DE CALCUL (LOGIQUE SÉCURISÉE)
+# Phase 1 : Biga (proportionnelle à la farine totale)
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = farine_totale * (pct_biga_eau / 100)
 p_levure_biga = farine_totale * (pct_biga_levure / 100)
 
-# Phase 2 : Rafraîchissement
+# Phase 2 : Rafraîchissement (Différentiel)
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
+
+# Ingrédients finaux (toujours sur base farine totale)
 p_sel = farine_totale * (sel_pct / 100)
-p_huile = farine_totale * (huile_pct / 10
+p_huile = farine_totale * (huile_pct / 100)
+p_malt = farine_totale * (malt_pct / 100)
+
+# 4. AFFICHAGE DES RÉSULTATS
+st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine")
+st.write(f"Config : Biga **{pct_biga_farine}%** | Eau Biga **{pct_biga_eau}%**")
+
+c1, c2 = st.columns(2)
+with c1:
+    st.subheader("📦 Phase 1 : Biga (J-1)")
+    st.metric("Farine Biga", f"{int(p_farine_biga)} g")
+    st.metric("Eau Biga", f"{int(p_eau_biga)} g")
+    st.metric("Levure (1%)", f"{int(p_levure_biga)} g")
+
+with c2:
+    st.subheader("🥣 Phase 2 : Jour J")
+    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
+    st.metric("Eau à ajouter", f"{int(eau_reste)} g")
+    st.metric("Sel & Huile", f"{int(p_sel + p_huile)} g")
+    st.metric("Malt", f"{int(p_malt)} g")
+
+st.divider()
+poids_final = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
+st.info(f"⚖️ Poids total de la pâte : **{int(poids_final)} g**")
