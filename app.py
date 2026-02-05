@@ -1,7 +1,7 @@
 import streamlit as st
 
 # 1. CONFIGURATION
-st.set_page_config(page_title="Calculateur Biga MYPIZZATEACHER", layout="centered")
+st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
 st.markdown("""
     <style>
@@ -14,8 +14,9 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-title">🔥 Biga Master Expert</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Logiciel de calcul MYPIZZATEACHER</p>', unsafe_allow_html=True)
+# TITRE MIS À JOUR
+st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Logiciel de calcul haute précision</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
@@ -27,8 +28,7 @@ with st.sidebar:
     st.subheader("🛠️ Configuration Biga")
     pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 20)
     
-    # RÈGLE DYNAMIQUE STRICTE
-    # Si Biga = 100% de la farine totale, alors Eau Biga = 55% de la farine totale
+    # RÈGLE STRICTE : Si Biga = 100%, alors Eau = 55%. Sinon 44%.
     if pct_biga_farine == 100:
         pct_biga_eau = 55
     else:
@@ -39,7 +39,7 @@ with st.sidebar:
     st.divider()
     st.subheader("🧂 Phase 2 (Rafraîchissement)")
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
-    huile_pct = st.slider("Huile (%)", 0.0, 5.0, 3.0, step=0.1)
+    huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
 
 # 3. MOTEUR DE CALCUL (LOGIQUE MARCO)
 # Phase 1 : Biga (Calculée sur la farine totale)
@@ -52,26 +52,4 @@ farine_a_ajouter = farine_totale - poids_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_a_ajouter = eau_totale_cible - poids_eau_biga
 poids_sel = farine_totale * (sel_pct / 100)
-poids_huile = farine_totale * (huile_pct / 100)
-
-# 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Résultats pour {farine_totale}g de farine")
-st.write(f"Règle appliquée : Biga {pct_biga_farine}% $\\rightarrow$ Eau Biga {pct_biga_eau}%")
-
-c1, c2 = st.columns(2)
-with c1:
-    st.subheader("📦 Phase 1 : Biga (J-1)")
-    st.metric("Farine Biga", f"{int(poids_farine_biga)} g")
-    st.metric("Eau Biga", f"{int(poids_eau_biga)} g")
-    st.metric("Levure", f"{int(poids_levure_biga)} g")
-
-with c2:
-    st.subheader("🥣 Phase 2 : Jour J")
-    st.metric("Farine à ajouter", f"{int(farine_a_ajouter)} g")
-    st.metric("Eau à ajouter", f"{int(eau_a_ajouter)} g")
-    st.metric("Sel", f"{int(poids_sel)} g")
-    st.metric("Huile", f"{int(poids_huile)} g")
-
-st.divider()
-poids_final_pate = farine_totale + eau_totale_cible + poids_sel + poids_huile
-st.info(f"⚖️ Poids total de la pâte : **{int(poids_final_pate)} g**")
+poids_huile =
