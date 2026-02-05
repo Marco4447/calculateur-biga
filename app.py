@@ -1,8 +1,9 @@
-import streamlit st
+import streamlit as st
 
-# 1. CONFIGURATION
+# 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
+# STYLE CSS SOMBRE
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -33,6 +34,7 @@ with st.sidebar:
     st.header("🌀 Friction Spirale (Phase 2)")
     t_v1 = st.number_input("Temps en Vitesse 1 (min)", value=5, min_value=0)
     t_v2 = st.number_input("Temps en Vitesse 2 (min)", value=8, min_value=0)
+    # Calcul de friction : 0.5 par min en V1, 1.3 par min en V2
     friction_calculee = (t_v1 * 0.5) + (t_v2 * 1.3)
     
     st.divider()
@@ -45,21 +47,24 @@ with st.sidebar:
     st.divider()
     st.header("🛠️ Config Biga")
     pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 100)
-    pct_biga_eau_std = 55 if pct_biga_farine == 100 else 44
+    # Règle MYPIZZATEACHER : 55% si Biga 100%, sinon 44%
+    pct_biga_eau_val = 55 if pct_biga_farine == 100 else 44
 
 # 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
 
 # --- PHASE 1 : BIGA ---
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
-p_eau_biga = farine_totale * (pct_biga_eau_std / 100)
-p_levure_biga = farine_totale * (1 / 100)
-# Calcul eau Biga (Règle 55)
-t_eau_biga = 55 - (t_amb + t_far)
+p_eau_biga = farine_totale * (pct_biga_eau_val / 100)
+p_levure_biga = farine_totale * 0.01  # 1% fixe
+# Règle 55 - (Temp Air + Temp Farine)
+t_eau_biga_result = 55 - (t_amb + t_far)
 
 # --- PHASE 2 : RAFRAÎCHISSEMENT ---
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
-# Calcul eau Phase 2 (Règle Friction)
-t_pate_cible =
+# Règle (3 * 24) - (Temp Air + Temp Farine + Friction)
+t_eau_p2_result = (3 * 24) - (t_amb + t_far + friction_calculee)
+
+p_sel = farine_totale * (sel_pct /
