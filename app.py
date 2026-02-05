@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 1. CONFIGURATION
+# 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
 # STYLE CSS SOMBRE PRO
@@ -18,10 +18,9 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
-    st.header("🍕 Base de Farine Totale")
+    st.header("🍕 Poids Pâton Fini")
     nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
-    # Si l'utilisateur veut 200g de biga à 20%, il doit saisir 1000g ici
-    farine_par_paton = st.number_input("Farine par pâton (g)", value=1000, step=50)
+    poids_final_voulu = st.number_input("Poids d'un pâton fini (g)", value=1000, step=50)
     
     st.divider()
     st.header("💰 Coûts de Revient (€)")
@@ -37,7 +36,6 @@ with st.sidebar:
     t_far = st.number_input("Temp. Farine (°C)", value=20)
     t_v1 = st.number_input("Temps V1 (min)", value=5)
     t_v2 = st.number_input("Temps V2 (min)", value=8)
-    # Friction dynamique : 0.5/min en V1, 1.3/min en V2
     friction_calculee = (t_v1 * 0.5) + (t_v2 * 1.3)
     
     st.divider()
@@ -49,10 +47,13 @@ with st.sidebar:
     pct_biga_farine = st.slider("% Biga", 10, 100, 20)
     pct_biga_eau_val = 55 if pct_biga_farine == 100 else 44
 
-# 3. MOTEUR DE CALCUL
-farine_totale = nb_patons * farine_par_paton
+# 3. MOTEUR DE CALCUL INVERSÉ
+# On calcule la farine totale nécessaire pour que le pâton fini (P) atteigne le poids cible
+# Formule : Farine = P / (1 + Hydra% + Sel% + Huile% + Malt% + Levure% (1%))
+ratio_total = 1 + (hydra_totale_pct/100) + (sel_pct/100) + (huile_pct/100) + (malt_pct/100) + 0.01
+farine_totale = (nb_patons * poids_final_voulu) / ratio_total
 
-# Phase 1 : Biga (20% de 1000g = 200g de farine)
+# Phase 1 : Biga (20% de la farine totale déduite)
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_farine_biga * (pct_biga_eau_val / 100)
 p_levure_g = farine_totale * 0.01 
@@ -68,11 +69,11 @@ p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
 p_malt_g = farine_totale * (malt_pct / 100)
 
-# Coût de revient (incluant eau à 0.004€/L)
+# Coûts
 cout_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_malt_g/1000)*p_malt) + ((p_levure_g/1000)*p_levure) + ((eau_totale_cible/1000)*0.004)
 
-# 4. AFFICHAGE
-st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine totale")
+# 4. AFFICHAGE DES RÉSULTATS
+st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_final_voulu)} g")
 
 c1, c2 = st.columns(2)
 with c1:
@@ -90,5 +91,8 @@ with c2:
     st.metric("Sel / Huile / Malt", f"{p_sel_g + p_huile_g + p_malt_g:.1f} g")
 
 st.divider()
-poids_f = (farine_totale + eau_totale_cible + p_sel_g + p_huile_g + p_malt_g + p_levure_g) / nb_patons
-st.info(f"⚖️ Poids d'un pâton fini : **{int(poids_f)}g** | Coût par Pâton : **{cout_total/nb_patons:.2f} €**")
+st.subheader("💰 Coût de Revient")
+cc1, cc2, cc3 = st.columns(3)
+cc1.metric("Total", f"{cout_total:.2f} €")
+cc2.metric("Par Pâton", f"{(cout_total/nb_patons):.2f} €")
+cc3.metric("Friction", f"+{friction_calculee:.1f}°C")
