@@ -1,9 +1,8 @@
 import streamlit as st
 
-# 1. CONFIGURATION DE LA PAGE
+# 1. CONFIGURATION
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
-# STYLE CSS SOMBRE PRO
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -17,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Calculateur Expert & Détail des Pesées</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Calculateur Expert & Friction Dynamique</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
@@ -26,18 +25,22 @@ with st.sidebar:
     farine_par_paton = st.number_input("Farine par pâton (g)", value=150, step=10)
     
     st.divider()
-    st.header("🌀 Friction du Pétrin")
-    type_petrin = st.selectbox("Type de pétrissage", ["Manuel", "Spirale (Vitesse 1)", "Spirale (Vitesse 2)"])
-    frictions = {"Manuel": 2, "Spirale (Vitesse 1)": 8, "Spirale (Vitesse 2)": 14}
-    friction_val = frictions[type_petrin]
+    st.header("🌀 Friction Spirale (Phase 2)")
+    # Saisie des temps de pétrissage
+    t_v1 = st.number_input("Temps en Vitesse 1 (min)", value=5, min_value=0)
+    t_v2 = st.number_input("Temps en Vitesse 2 (min)", value=8, min_value=0)
+    
+    # Calcul de la friction : 0.5°/min en V1 et 1.3°/min en V2
+    friction_calculee = (t_v1 * 0.5) + (t_v2 * 1.3)
+    st.write(f"Friction totale estimée : **+{friction_calculee:.1f}°C**")
     
     st.divider()
     st.header("🌡️ Température Eau (Phase 2)")
     t_amb = st.number_input("Temp. Ambiante (°C)", value=22)
     t_far = st.number_input("Temp. Farine (°C)", value=20)
     t_pate_cible = st.slider("Temp. Pâte visée (°C)", 22, 26, 24)
-    # Formule TB : (3 * Cible) - (Air + Farine + Friction)
-    t_eau_p2 = (3 * t_pate_cible) - (t_amb + t_far + friction_val)
+    # Formule TB : (3 * TFP) - (Air + Farine + Friction)
+    t_eau_p2 = (3 * t_pate_cible) - (t_amb + t_far + friction_calculee)
 
     st.divider()
     st.header("🧪 Ratios Recette")
@@ -87,5 +90,4 @@ with c2:
     st.metric("Malt", f"{p_malt:.1f} g")
 
 st.divider()
-poids_total_pate = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
-st.info(f"⚖️ Poids total : **{int(poids_total_pate)}g** | Friction ({type_petrin}) : **+{friction_val}°C**")
+st.info(f"⚖️ Poids total : **{int(farine_totale + eau_totale_cible + p_sel + p_huile + p_malt)}g** | Friction calculée : **+{friction_calculee:.1f}°C**")
