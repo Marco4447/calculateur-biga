@@ -8,19 +8,19 @@ st.markdown("""
     .stApp { background-color: #121212; color: #E0E0E0; }
     .main-title { text-align: center; color: #FF8C00; font-family: 'Helvetica', sans-serif; font-size: 2.8rem; font-weight: 800; margin-top: -40px; }
     .sub-title { text-align: center; color: #BBBBBB; font-style: italic; margin-bottom: 2rem; }
-    div[data-testid="stMetric"] { background-color: #1E1E1E; border: 1px solid #333; padding: 20px; border-radius: 12px; }
-    [data-testid="stMetricValue"] { color: #FF8C00 !important; font-weight: bold; }
+    div[data-testid="stMetric"] { background-color: #1E1E1E; border: 1px solid #333; padding: 15px; border-radius: 12px; }
+    [data-testid="stMetricValue"] { color: #FF8C00 !important; font-weight: bold; font-size: 1.8rem !important; }
     [data-testid="stMetricLabel"] { color: #AAAAAA !important; }
     section[data-testid="stSidebar"] { background-color: #1A1A1A; border-right: 1px solid #333; }
     </style>
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Calculateur Phase 2 & Friction Pétrin</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Calculateur Expert & Détail des Ingrédients</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
-    st.header("🍕 Base de Farine")
+    st.header("🍕 Format de la Recette")
     nb_patons = st.number_input("Nombre de pâtons", value=10, min_value=1)
     farine_par_paton = st.number_input("Farine par pâton (g)", value=150, step=10)
     
@@ -29,20 +29,14 @@ with st.sidebar:
     type_petrin = st.selectbox("Type de pétrissage", 
                                 ["Manuel", "Spirale (Vitesse 1)", "Spirale (Vitesse 2)"])
     
-    # Attribution du coefficient de friction
     frictions = {"Manuel": 2, "Spirale (Vitesse 1)": 8, "Spirale (Vitesse 2)": 14}
     friction_val = frictions[type_petrin]
     
-    st.write(f"Friction estimée : +{friction_val}°C")
-    
     st.divider()
-    st.header("🌡️ Température de l'Eau (Phase 2)")
+    st.header("🌡️ Température Eau (Phase 2)")
     t_amb_p2 = st.number_input("Temp. Ambiante (°C)", value=22)
     t_far_p2 = st.number_input("Temp. Farine (°C)", value=20)
     t_pate_cible = st.slider("Temp. Pâte visée (°C)", 22, 26, 24)
-    
-    # Formule : (3 * Cible) - (Air + Farine + Friction)
-    # Note : On considère la Biga à 18°C comme faisant partie de la masse farine/air
     t_eau_p2 = (3 * t_pate_cible) - (t_amb_p2 + t_far_p2 + friction_val)
 
     st.divider()
@@ -67,26 +61,24 @@ p_levure_biga = farine_totale * (pct_biga_levure / 100)
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
+
+# Ingrédients individuels
 p_sel = farine_totale * (sel_pct / 100)
 p_huile = farine_totale * (huile_pct / 100)
 p_malt = farine_totale * (malt_pct / 100)
 
 # 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine")
+st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine")
 
 c1, c2 = st.columns(2)
 with c1:
-    st.subheader("📦 Phase 1 : Biga (18h à 18°C)")
+    st.subheader("📦 Phase 1 : Biga")
     st.metric("Farine Biga", f"{int(p_farine_biga)} g")
     st.metric("Eau Biga", f"{int(p_eau_biga)} g")
     st.metric("Levure", f"{int(p_levure_biga)} g")
 
 with c2:
-    st.subheader("🥣 Phase 2 : Rafraîchissement")
+    st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
     st.metric("Temp. Eau idéale", f"{int(t_eau_p2)} °C")
-    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
-    st.metric("Sel, Huile & Malt", f"{int(p_sel + p_huile + p_malt)} g")
-
-st.divider()
-st.info(f"💡 Friction appliquée ({type_petrin}) : **{friction_val}°C**")
+    st.metric
