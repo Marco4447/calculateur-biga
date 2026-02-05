@@ -15,7 +15,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga Master Expert</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">MYPIZZATEACHER - Logique de calcul proportionnel</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Logiciel de calcul MYPIZZATEACHER</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
@@ -27,8 +27,9 @@ with st.sidebar:
     st.subheader("🛠️ Configuration Biga")
     pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 20)
     
-    # Votre règle : 44% d'eau si hydra < 100, sinon 55%
-    if hydra_totale_pct == 100:
+    # RÈGLE DYNAMIQUE STRICTE
+    # Si Biga = 100% de la farine totale, alors Eau Biga = 55% de la farine totale
+    if pct_biga_farine == 100:
         pct_biga_eau = 55
     else:
         pct_biga_eau = 44
@@ -36,12 +37,12 @@ with st.sidebar:
     pct_biga_levure = 1 # 1% de la farine totale
 
     st.divider()
-    st.subheader("🧂 Phase 2")
+    st.subheader("🧂 Phase 2 (Rafraîchissement)")
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 5.0, 3.0, step=0.1)
 
-# 3. CALCULS (VOTRE LOGIQUE EXACTE)
-# Phase 1 : Biga
+# 3. MOTEUR DE CALCUL (LOGIQUE MARCO)
+# Phase 1 : Biga (Calculée sur la farine totale)
 poids_farine_biga = farine_totale * (pct_biga_farine / 100)
 poids_eau_biga = farine_totale * (pct_biga_eau / 100)
 poids_levure_biga = farine_totale * (pct_biga_levure / 100)
@@ -53,12 +54,13 @@ eau_a_ajouter = eau_totale_cible - poids_eau_biga
 poids_sel = farine_totale * (sel_pct / 100)
 poids_huile = farine_totale * (huile_pct / 100)
 
-# 4. AFFICHAGE
+# 4. AFFICHAGE DES RÉSULTATS
 st.markdown(f"### 📊 Résultats pour {farine_totale}g de farine")
+st.write(f"Règle appliquée : Biga {pct_biga_farine}% $\\rightarrow$ Eau Biga {pct_biga_eau}%")
 
 c1, c2 = st.columns(2)
 with c1:
-    st.subheader("📦 Phase 1 : Biga")
+    st.subheader("📦 Phase 1 : Biga (J-1)")
     st.metric("Farine Biga", f"{int(poids_farine_biga)} g")
     st.metric("Eau Biga", f"{int(poids_eau_biga)} g")
     st.metric("Levure", f"{int(poids_levure_biga)} g")
@@ -72,4 +74,4 @@ with c2:
 
 st.divider()
 poids_final_pate = farine_totale + eau_totale_cible + poids_sel + poids_huile
-st.write(f"⚖️ Poids total de la pâte : **{int(poids_final_pate)} g**")
+st.info(f"⚖️ Poids total de la pâte : **{int(poids_final_pate)} g**")
