@@ -1,9 +1,9 @@
 import streamlit as st
 
-# 1. CONFIGURATION DE LA PAGE
+# 1. CONFIGURATION
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
-# STYLE CSS SOMBRE PROFESSIONNEL
+# STYLE CSS SOMBRE PRO
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -19,8 +19,9 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
     st.header("🍕 Base de Farine Totale")
-    nb_patons = st.number_input("Nombre de pâtons", value=10, min_value=1)
-    farine_par_paton = st.number_input("Farine par pâton (g)", value=170, step=5, help="C'est ici que vous définissez la base de farine")
+    nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
+    # Si l'utilisateur veut 200g de biga à 20%, il doit saisir 1000g ici
+    farine_par_paton = st.number_input("Farine par pâton (g)", value=1000, step=50)
     
     st.divider()
     st.header("💰 Coûts de Revient (€)")
@@ -36,6 +37,7 @@ with st.sidebar:
     t_far = st.number_input("Temp. Farine (°C)", value=20)
     t_v1 = st.number_input("Temps V1 (min)", value=5)
     t_v2 = st.number_input("Temps V2 (min)", value=8)
+    # Friction dynamique : 0.5/min en V1, 1.3/min en V2
     friction_calculee = (t_v1 * 0.5) + (t_v2 * 1.3)
     
     st.divider()
@@ -44,43 +46,43 @@ with st.sidebar:
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
     malt_pct = st.radio("Malt (%)", options=[0.5, 1.0], index=1, horizontal=True)
-    pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 20)
+    pct_biga_farine = st.slider("% Biga", 10, 100, 20)
     pct_biga_eau_val = 55 if pct_biga_farine == 100 else 44
 
 # 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
 
-# Phase 1 : Biga (Calculée strictement sur la farine totale)
+# Phase 1 : Biga (20% de 1000g = 200g de farine)
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_farine_biga * (pct_biga_eau_val / 100)
 p_levure_g = farine_totale * 0.01 
 t_eau_biga_result = 55 - (t_amb + t_far)
 
 # Phase 2 : Rafraîchissement
-f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
 eau_reste = eau_totale_cible - p_eau_biga
+f_reste = farine_totale - p_farine_biga
 t_eau_p2_result = (3 * 24) - (t_amb + t_far + friction_calculee)
 
 p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
 p_malt_g = farine_totale * (malt_pct / 100)
 
-# Calcul du Coût
+# Coût de revient (incluant eau à 0.004€/L)
 cout_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_malt_g/1000)*p_malt) + ((p_levure_g/1000)*p_levure) + ((eau_totale_cible/1000)*0.004)
 
-# 4. AFFICHAGE DES RÉSULTATS
+# 4. AFFICHAGE
 st.markdown(f"### 📊 Résultats pour {int(farine_totale)}g de farine totale")
 
-col1, col2 = st.columns(2)
-with col1:
+c1, c2 = st.columns(2)
+with c1:
     st.subheader("📦 Phase 1 : Biga (J-1)")
     st.metric("Farine Biga", f"{int(p_farine_biga)} g")
     st.metric("Eau Biga", f"{int(p_eau_biga)} g")
     st.metric("Levure (1%)", f"{p_levure_g:.1f} g")
     st.metric("Temp. Eau Biga", f"{int(t_eau_biga_result)} °C")
 
-with col2:
+with c2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
     st.metric("Temp. Eau idéale", f"{int(t_eau_p2_result)} °C")
