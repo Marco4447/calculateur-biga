@@ -22,6 +22,11 @@ with st.sidebar:
     farine_par_paton = st.number_input("Farine par pâton (g)", value=150, step=5)
     
     st.divider()
+    st.header("🛠️ Config Biga")
+    # LE CURSEUR EST DE RETOUR ICI
+    pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 100)
+    
+    st.divider()
     st.header("🌡️ Températures & Friction")
     t_amb = st.number_input("Temp. Ambiante (°C)", value=22)
     t_far = st.number_input("Temp. Farine (°C)", value=20)
@@ -44,13 +49,14 @@ with st.sidebar:
 # 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
 
-# PHASE 1 : BIGA (100% Farine)
-p_farine_biga = farine_totale
-p_eau_biga = p_farine_biga * 0.44  # Ta demande : 44% d'eau pour la biga
+# PHASE 1 : BIGA
+p_farine_biga = farine_totale * (pct_biga_farine / 100)
+p_eau_biga = p_farine_biga * 0.44  # 44% d'eau sur la partie Biga
 p_levure = farine_totale * 0.01
 t_eau_biga = 55 - (t_amb + t_far)
 
 # PHASE 2 : RAFRAÎCHISSEMENT
+f_reste = farine_totale - p_farine_biga
 eau_totale = farine_totale * (hydra_totale / 100)
 eau_a_ajouter = eau_totale - p_eau_biga
 p_sel = farine_totale * (sel_pct / 100)
@@ -58,29 +64,29 @@ p_huile = farine_totale * (huile_pct / 100)
 p_malt = farine_totale * (malt_pct / 100)
 t_eau_p2 = (3 * 24) - (t_amb + t_far + friction_calculee)
 
-# COÛT
+# COÛT & POIDS
 cout_total = ((farine_totale/1000)*p_farine) + ((p_huile/1000)*p_huile) + ((eau_totale/1000)*0.004)
 poids_paton = (farine_totale + eau_totale + p_sel + p_huile + p_malt + p_levure) / nb_patons
 
 # 4. AFFICHAGE
-st.markdown(f"### 📊 Protocole 100% Biga | {int(farine_totale)}g de farine")
+st.markdown(f"### 📊 Résultats | {int(farine_totale)}g de farine | Biga {pct_biga_farine}%")
 
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("📦 Phase 1 : Biga (J-1)")
     st.metric("Farine Biga", f"{int(p_farine_biga)} g")
     st.metric("Eau Biga (44%)", f"{int(p_eau_biga)} g")
+    st.metric("Levure (1%)", f"{int(p_levure)} g")
     st.metric("Temp. Eau Biga", f"{int(t_eau_biga)} °C")
-    st.metric("Levure", f"{int(p_levure)} g")
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Eau à ajouter", f"{int(eau_a_ajouter)} g")
     st.metric("Temp. Eau idéale", f"{int(t_eau_p2)} °C")
-    st.metric("Sel", f"{p_sel:.1f} g")
-    st.metric("Huile", f"{p_huile:.1f} g")
+    st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
+    st.metric("Sel / Huile / Malt", f"{int(p_sel + p_huile + p_malt)} g")
 
 st.divider()
 cc1, cc2 = st.columns(2)
 cc1.info(f"⚖️ Poids d'un pâton fini : **{int(poids_paton)}g**")
-cc2.success(f"💰 Coût de revient/pâton : **{(cout_total/nb_patons):.2f} €**")
+cc2.success(f"💰 Coût de
