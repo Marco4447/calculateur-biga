@@ -16,51 +16,46 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Calculateur de précision par nombre de pâtons</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Calculateur de précision MYPIZZATEACHER</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
-    st.header("🍕 Format des Pâtons")
-    nb_patons = st.number_input("Nombre de pâtons", value=10, min_value=1)
-    poids_unitaire = st.number_input("Poids d'un pâton (g)", value=250, step=10)
+    st.header("🍕 Format de la Recette")
+    nb_patons = st.number_input("Nombre de sessions", value=1, min_value=1)
+    farine_par_session = st.number_input("Farine par session (g)", value=1000, step=100)
     
     st.divider()
     st.header("🧪 Ratios Recette")
-    hydra_totale_pct = st.slider("Hydratation Totale (%)", 50, 100, 70)
+    hydra_totale_pct = st.slider("Hydratation Totale (%)", 50, 100, 56)
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
     
     st.divider()
     st.header("🛠️ Config Biga")
-    pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 20)
+    pct_biga_farine = st.slider("% Biga (sur Farine Totale)", 10, 100, 100)
     
-    # Règle : Si Biga 100%, alors Hydra Biga 55%. Sinon 44%.
+    # RÈGLE MARCO : Si Biga 100%, alors Hydra Biga 55%. Sinon 44%.
     pct_biga_eau = 55 if pct_biga_farine == 100 else 44
     pct_biga_levure = 1
 
-# 3. MOTEUR DE CALCUL INVERSÉ
-# On calcule d'abord le poids total de pâte souhaité
-poids_pate_total = nb_patons * poids_unitaire
+# 3. MOTEUR DE CALCUL (LOGIQUE MARCO)
+farine_totale = nb_patons * farine_par_session
 
-# On déduit la farine totale (Base 100%)
-# Formule : Poids Total = Farine * (1 + %Hydra + %Sel + %Huile)
-farine_totale = poids_pate_total / (1 + (hydra_totale_pct/100) + (sel_pct/100) + (huile_pct/100))
-
-# Phase 1 : Biga (sur Farine Totale)
+# Phase 1 : Biga
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = farine_totale * (pct_biga_eau / 100)
 p_levure_biga = farine_totale * (pct_biga_levure / 100)
 
 # Phase 2 : Rafraîchissement
 f_reste = farine_totale - p_farine_biga
-eau_cible = farine_totale * (hydra_totale_pct / 100)
-eau_reste = eau_cible - p_eau_biga
+eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
+eau_reste = eau_totale_cible - p_eau_biga
 p_sel = farine_totale * (sel_pct / 100)
 p_huile = farine_totale * (huile_pct / 100)
 
 # 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Pour {nb_patons} pâtons de {poids_unitaire}g")
-st.write(f"Masse totale : **{int(poids_pate_total)}g** | Farine totale nécessaire : **{int(farine_totale)}g**")
+st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine totale")
+st.write(f"Configuration : Biga **{pct_biga_farine}%** | Eau Biga **{pct_biga_eau}%**")
 
 c1, c2 = st.columns(2)
 with c1:
@@ -73,7 +68,9 @@ with c2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
-    st.metric("Sel & Huile", f"{int(p_sel + p_huile)} g")
+    st.metric("Sel", f"{int(p_sel)} g")
+    st.metric("Huile", f"{int(p_huile)} g")
 
 st.divider()
-st.info(f"💡 Rappel : Biga à **{pct_biga_eau}%** d'hydratation.")
+poids_total = farine_totale + eau_totale_cible + p_sel + p_huile
+st.info(f"⚖️ Poids total de la pâte : **{int(poids_total)} g**")
