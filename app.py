@@ -21,7 +21,6 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 with st.sidebar:
     st.header("🍕 Format de la Recette")
     nb_patons = st.number_input("Nombre de pâtons", value=10, min_value=1)
-    # On définit ici la FARINE TOTALE par pâton (ex: 150g de farine)
     farine_par_paton = st.number_input("Farine par pâton (g)", value=150, step=5)
     
     st.divider()
@@ -45,44 +44,22 @@ with st.sidebar:
     st.divider()
     st.header("🛠️ Config Biga")
     pct_biga_farine = st.slider("% Biga", 10, 100, 20)
-    # Règle MYPIZZATEACHER : 55% si Biga 100%, sinon 44%
     pct_biga_eau_val = 55 if pct_biga_farine == 100 else 44
 
-# 3. MOTEUR DE CALCUL (LOGIQUE FARINE TOTALE)
+# 3. MOTEUR DE CALCUL
 farine_totale = nb_patons * farine_par_paton
 
-# Phase 1 : Biga (Calculée directement sur la farine totale)
+# Phase 1 : Biga
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_farine_biga * (pct_biga_eau_val / 100)
+# Levure (1% de la farine totale, à mettre dans la Biga)
 p_lev_g = farine_totale * 0.01 
 t_eau_biga_result = 55 - (t_amb + t_far)
 
 # Phase 2 : Rafraîchissement
 f_reste = farine_totale - p_farine_biga
 eau_totale_cible = farine_totale * (hydra_totale_pct / 100)
-eau_reste = eau_totale_cible - (p_farine_biga * (pct_biga_eau_val / 100))
+eau_reste = eau_totale_cible - p_eau_biga
 t_eau_p2_result = (3 * 24) - (t_amb + t_far + friction_calculee)
 
-p_sel_g = farine_totale * (sel_pct / 100)
-p_huile_g = farine_totale * (huile_pct / 100)
-p_malt_g = farine_totale * (malt_pct / 100)
-
-# 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Pour {int(farine_totale)}g de farine totale")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.subheader("📦 Phase 1 : Biga (J-1)")
-    st.metric("Farine Biga", f"{int(p_farine_biga)} g")
-    st.metric("Eau Biga", f"{int(p_eau_biga)} g")
-    st.metric("Temp. Eau Biga", f"{int(t_eau_biga_result)} °C")
-
-with col2:
-    st.subheader("🥣 Phase 2 : Jour J")
-    st.metric("Eau à ajouter", f"{int(eau_reste)} g")
-    st.metric("Temp. Eau idéale", f"{int(t_eau_p2_result)} °C")
-    st.metric("Sel / Huile / Malt", f"{p_sel_g + p_huile_g + p_malt_g:.1f} g")
-
-st.divider()
-poids_final_paton = (farine_totale + eau_totale_cible + p_sel_g + p_huile_g + p_malt_g + p_lev_g) / nb_patons
-st.info(f"⚖️ Poids d'un pâton fini : **{int(poids_final_paton)}g** | Friction : **+{friction_calculee:.1f}°C**")
+p_sel_g = farine_totale * (sel
