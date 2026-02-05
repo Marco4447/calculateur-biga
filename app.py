@@ -16,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Logiciel de calcul haute précision</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Calculateur de précision MYPIZZATEACHER</p>', unsafe_allow_html=True)
 
 # 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
@@ -29,8 +29,8 @@ with st.sidebar:
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
     
-    # MODIFICATION ICI : Curseur Malt avec un pas de 0.5
-    malt_pct = st.slider("Malt / Sucre (%)", 0.0, 3.0, 1.0, step=0.5)
+    # MODIFICATION : Choix unique entre 0.5% et 1%
+    malt_pct = st.radio("Malt / Sucre (%)", options=[0.5, 1.0], index=1, horizontal=True)
     
     st.divider()
     st.header("🛠️ Config Biga")
@@ -68,7 +68,7 @@ with c2:
     st.metric("Farine à ajouter", f"{int(max(0, f_reste))} g")
     st.metric("Eau à ajouter", f"{int(eau_reste)} g")
     st.metric("Sel & Huile", f"{int(p_sel + p_huile)} g")
-    st.metric("Malt", f"{p_malt:.1f} g") # Affichage avec une décimale pour le 0.5
+    st.metric("Malt", f"{p_malt:.1f} g")
 
 st.divider()
 poids_total = farine_totale + eau_totale_cible + p_sel + p_huile + p_malt
