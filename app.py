@@ -20,26 +20,22 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 with st.sidebar:
     st.header("⚙️ Réglages")
 
-    # MENU : POIDS DU PATON
     with st.expander("Poids du pâton", expanded=True):
         nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
         poids_cible = st.number_input("Poids d'un pâton fini (g)", value=1000, step=10)
     
-    # MENU : RATIOS & CONFIG BIGA (MODIFIÉ ICI)
     with st.expander("🧪 Ratios & Config Biga", expanded=False):
         hydra_totale = st.slider("Hydratation totale de l'empattement", 50, 100, 56)
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
-        # NOUVEAU LIBELLÉ ICI
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
         pct_eau_biga = 44 
 
-    # MENU : COÛTS
-    with st.expander("💰 Coûts de Revient", expanded=False):
-        p_farine = st.number_input("Prix Farine (€/kg)", value=1.20)
+    with st.expander("💰 Coûts de Revient", expanded=True):
+        p_farine = st.number_input("Prix Farine (€/kg)", value=1.24)
         p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
         p_sel = st.number_input("Prix Sel (€/kg)", value=0.80)
-        p_malt = st.number_input("Prix Malt (€/kg)", value=15.00)
+        p_malt = st.number_input("Prix Malt (€/kg)", value=9.99)
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
@@ -56,10 +52,18 @@ p_lev_biga = p_far_biga * 0.01
 f_reste = farine_totale - p_far_biga
 eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
-p_sel = farine_totale * (sel_pct / 100)
-p_huile = farine_totale * (huile_pct / 100)
+p_sel_g = farine_totale * (sel_pct / 100)
+p_huile_g = farine_totale * (huile_pct / 100)
 
-# 4. AFFICHAGE DES RÉSULTATS (ARRONDI SUPÉRIEUR)
+# CALCUL DU COÛT (Division par 1000 pour passer du kg au g)
+c_farine = (farine_totale / 1000) * p_farine
+c_huile = (p_huile_g / 1000) * p_huile
+c_sel = (p_sel_g / 1000) * p_sel
+c_levure = (p_lev_biga / 1000) * p_levure
+c_eau = (eau_tot_besoin / 1000) * 0.004 # Prix eau moyen
+cout_total_pate = c_farine + c_huile + c_sel + c_levure + c_eau
+
+# 4. AFFICHAGE (ARRONDI SUPÉRIEUR)
 st.markdown(f"### 📊 Recette pour {int(poids_cible)}g")
 
 col1, col2 = st.columns(2)
@@ -73,9 +77,8 @@ with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Huile", f"{math.ceil(p_huile)} g")
-    st.metric("Sel", f"{math.ceil(p_sel)} g")
+    st.metric("Huile", f"{math.ceil(p_huile_g)} g")
+    st.metric("Sel", f"{math.ceil(p_sel_g)} g")
 
 st.divider()
-cout_tot = ((farine_totale/1000)*p_farine) + ((p_huile/1000)*p_huile) + ((eau_tot_besoin/1000)*0.004)
-st.success(f"💰 Coût de revient par pâton : **{(cout_tot/nb_patons):.2f} €**")
+st.success(f"💰 Coût de revient par pâton : **{(cout_total_pate/nb_patons):.2f} €**")
