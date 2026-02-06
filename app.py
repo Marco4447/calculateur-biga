@@ -25,12 +25,13 @@ with st.sidebar:
         nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
         poids_cible = st.number_input("Poids d'un pâton fini (g)", value=1000, step=10)
     
-    # MENU : RATIOS (MODIFIÉ ICI)
+    # MENU : RATIOS & CONFIG BIGA (MODIFIÉ ICI)
     with st.expander("🧪 Ratios & Config Biga", expanded=False):
         hydra_totale = st.slider("Hydratation totale de l'empattement", 50, 100, 56)
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
-        pct_biga_farine = st.slider("% Biga", 10, 100, 20)
+        # NOUVEAU LIBELLÉ ICI
+        pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
         pct_eau_biga = 44 
 
     # MENU : COÛTS
