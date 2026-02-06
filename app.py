@@ -20,18 +20,20 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 with st.sidebar:
     st.header("⚙️ Réglages")
 
-    # MENU MODIFIÉ ICI
+    # MENU : POIDS DU PATON
     with st.expander("Poids du pâton", expanded=True):
         nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
         poids_cible = st.number_input("Poids d'un pâton fini (g)", value=1000, step=10)
     
+    # MENU : RATIOS (MODIFIÉ ICI)
     with st.expander("🧪 Ratios & Config Biga", expanded=False):
-        hydra_totale = st.slider("Hydratation Totale (%)", 50, 100, 56)
+        hydra_totale = st.slider("Hydratation totale de l'empattement", 50, 100, 56)
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% Biga", 10, 100, 20)
         pct_eau_biga = 44 
 
+    # MENU : COÛTS
     with st.expander("💰 Coûts de Revient", expanded=False):
         p_farine = st.number_input("Prix Farine (€/kg)", value=1.20)
         p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
@@ -40,6 +42,7 @@ with st.sidebar:
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
+# Ratio = 1(Farine) + Hydra + Sel + Huile + Levure(1% de la partie Biga)
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
 
