@@ -32,7 +32,6 @@ with st.sidebar:
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
-        # Règle MyPizzaTeacher : Biga à 44% d'hydratation
         pct_eau_biga_fixe = 44 
 
     with st.expander("🌡️ Températures & Friction", expanded=True):
@@ -51,7 +50,7 @@ with st.sidebar:
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
-# Ratio total incluant 1% de levure sur la farine de biga (soit 0.01 * ratio biga)
+# Calcul de la farine totale pour atteindre le poids final exact
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
 poids_total_kilos = (nb_patons * poids_cible) / 1000
@@ -60,6 +59,7 @@ poids_total_kilos = (nb_patons * poids_cible) / 1000
 p_far_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_far_biga * (pct_eau_biga_fixe / 100)
 p_lev_biga = p_far_biga * 0.01 
+# TB 55 pour viser une sortie à 19-20°C
 t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga)
 
 # LOGIQUE DE STOCKAGE & FERMENTATION
@@ -80,13 +80,14 @@ eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
 p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
+# TB 72 pour le rafraîchissement
 t_eau_p2 = 72 - (t_amb_p2 + t_far + friction_p2)
 
-# CALCUL COÛT
+# CALCUL COÛT SÉCURISÉ
 c_total = (((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + 
            ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure))
 
-# 4. AFFICHAGE DES RÉSULTATS
+# 4. AFFICHAGE DES RÉSULTATS (ARRONDI SUPÉRIEUR)
 st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g soit {poids_total_kilos:.2f} kg de pâte")
 
 col1, col2 = st.columns(2)
@@ -95,7 +96,7 @@ with col1:
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga (44%)", f"{math.ceil(p_eau_biga)} g")
     st.metric("Levure Biga (1%)", f"{round(p_lev_biga, 1)} g")
-    st.metric("Temp. eau coulage Biga", f"{max(int(t_eau_biga), 2)} °C")
+    st.metric("Température eau de coulage Biga", f"{max(int(t_eau_biga), 2)} °C")
     
     st.markdown(f"""<div class="{box_style}">
     🎯 <b>Cible sortie pétrin :</b> 19-20°C<br>
@@ -108,17 +109,9 @@ with col2:
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
     st.metric("Sel / Huile", f"{math.ceil(p_sel_g + p_huile_g)} g")
-    st.metric("Temp. eau coulage phase 2", f"{int(t_eau_p2)} °C")
+    st.metric("Température eau de coulage phase 2", f"{int(t_eau_p2)} °C")
 
 st.divider()
 st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €** | Friction : **+{friction_p2:.1f}°C**")
 
-# 5. CONSEILS D'EXPERT
-st.markdown("---")
-with st.expander("🎓 Les secrets de la Biga par MyPizzaTeacher"):
-    st.write("""
-    - **Aspect Biga** : Elle doit être grumeleuse (type crumble), jamais une boule lisse.
-    - **Température** : La sortie à 19-20°C est la clé pour éviter l'acidité.
-    - **Stockage** : Entre 18°C et 19°C idéalement. Si TA > 27°C, utilisez impérativement une zone régulée.
-    - **Phase 2** : Découpez la Biga en morceaux pour faciliter son intégration au rafraîchissement.
-    """)
+# 5. CONSEILS D'EXPERT MYPIZZATEACH
