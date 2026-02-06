@@ -1,10 +1,10 @@
 import streamlit as st
 import math
 
-# 1. CONFIGURATION
-st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
+# 1. CONFIGURATION DE LA PAGE
+st.set_page_config(page_title="Biga MYPIZZATEACHER - Expert", layout="centered")
 
-# STYLE CSS
+# STYLE CSS SOMBRE ET PROFESSIONNEL
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -14,6 +14,7 @@ st.markdown("""
     section[data-testid="stSidebar"] { background-color: #1A1A1A; border-right: 1px solid #333; }
     .info-box { background-color: #262730; border-left: 5px solid #FF8C00; padding: 15px; border-radius: 5px; margin-top: 10px; }
     .alert-box { background-color: #443311; border-left: 5px solid #FFD700; padding: 15px; border-radius: 5px; margin-top: 10px; }
+    .expert-card { background-color: #1E1E1E; border: 1px solid #FF8C00; padding: 20px; border-radius: 10px; margin-top: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,47 +51,4 @@ poids_total_kilos = (nb_patons * poids_cible) / 1000
 p_far_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
-t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga)
-
-# FERMENTATION
-if t_amb_biga > 27:
-    msg_stockage = "🚨 <b>ALERTE :</b> Stockage IMPÉRATIF en zone régulée (18-19°C)."
-    duree_dec = 30.5 - (0.69 * 18.5) 
-    box_style = "alert-box"
-else:
-    msg_stockage = f"⏳ <b>Stockage :</b> Température ambiante ({t_amb_biga}°C)."
-    duree_dec = 30.5 - (0.69 * t_amb_biga)
-    box_style = "info-box"
-h, m = int(duree_dec), int((duree_dec - int(duree_dec)) * 60)
-
-# PHASE 2
-f_reste = farine_totale - p_far_biga
-eau_reste = (farine_totale * (hydra_totale / 100)) - p_eau_biga
-t_eau_p2 = 72 - (t_amb_p2 + t_far + friction_p2)
-
-# 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g ({poids_total_kilos:.2f} kg)")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.subheader("📦 Phase 1 : Biga")
-    st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
-    st.metric("Eau Biga", f"{math.ceil(p_eau_biga)} g")
-    st.metric("Temp. eau Biga", f"{max(int(t_eau_biga), 2)} °C")
-    st.markdown(f'<div class="{box_style}">🎯 <b>Cible sortie :</b> 19-20°C<br>{msg_stockage}<br>⏱️ {h}h{m:02d}</div>', unsafe_allow_html=True)
-
-with col2:
-    st.subheader("🥣 Phase 2 : Jour J")
-    st.metric("Farine rafraîchi", f"{math.ceil(f_reste)} g")
-    st.metric("Eau rafraîchi", f"{math.ceil(eau_reste)} g")
-    st.metric("Temp. eau phase 2", f"{int(t_eau_p2)} °C")
-
-# 5. CONSEILS D'EXPERT (HORS DES COLONNES POUR ÊTRE BIEN VISIBLE)
-st.divider()
-st.subheader("🎓 Les secrets de la Biga par MyPizzaTeacher")
-st.info("""
-- **Force de la farine (W)** : Utilise une farine de force (**W 300-340**) pour la Biga afin de résister aux 16h-20h de fermentation.
-- **Texture** : La Biga doit être grumeleuse (type crumble), jamais une boule lisse.
-- **Température** : La sortie à 19-20°C est la clé pour éviter l'acidité.
-- **Stockage** : Idéalement entre 18°C et 19°C. Si TA > 27°C, utilise une zone régulée.
-""")
+t_eau_biga = 55 - (t_amb_biga + t
