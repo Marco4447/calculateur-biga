@@ -29,9 +29,17 @@ with st.sidebar:
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
-        pct_eau_biga = 44 
+        pct_eau_biga_ratio = 44 
 
-    with st.expander("💰 Coûts de Revient", expanded=True):
+    with st.expander("🌡️ Températures & Friction", expanded=False):
+        t_amb = st.number_input("Temp. Ambiante (°C)", value=22)
+        t_far = st.number_input("Temp. Farine (°C)", value=20)
+        # Friction calculée : 0.5 par min en V1 + 1.3 par min en V2
+        t_v1 = st.number_input("Temps V1 (min)", value=5)
+        t_v2 = st.number_input("Temps V2 (min)", value=8)
+        friction = (t_v1 * 0.5) + (t_v2 * 1.3)
+
+    with st.expander("💰 Coûts de Revient", expanded=False):
         p_farine = st.number_input("Prix Farine (€/kg)", value=1.24)
         p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
         p_sel = st.number_input("Prix Sel (€/kg)", value=0.80)
@@ -39,14 +47,14 @@ with st.sidebar:
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
-# Ratio = 1(Farine) + Hydra + Sel + Huile + Levure(1% de la partie Biga)
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
 
 # PHASE 1 : BIGA
 p_far_biga = farine_totale * (pct_biga_farine / 100)
-p_eau_biga = p_far_biga * (pct_eau_biga / 100)
+p_eau_biga = p_far_biga * (pct_eau_biga_ratio / 100)
 p_lev_biga = p_far_biga * 0.01 
+t_eau_biga = 55 - (t_amb + t_far)
 
 # PHASE 2 : RAFRAÎCHISSEMENT
 f_reste = farine_totale - p_far_biga
@@ -54,16 +62,14 @@ eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
 p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
+# Calcul Température Eau Phase 2 (Base 72)
+t_eau_p2 = 72 - (t_amb + t_far + friction)
 
-# CALCUL DU COÛT (Division par 1000 pour passer du kg au g)
-c_farine = (farine_totale / 1000) * p_farine
-c_huile = (p_huile_g / 1000) * p_huile
-c_sel = (p_sel_g / 1000) * p_sel
-c_levure = (p_lev_biga / 1000) * p_levure
-c_eau = (eau_tot_besoin / 1000) * 0.004 # Prix eau moyen
-cout_total_pate = c_farine + c_huile + c_sel + c_levure + c_eau
+# COÛT
+c_total = (((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + 
+           ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure))
 
-# 4. AFFICHAGE (ARRONDI SUPÉRIEUR)
+# 4. AFFICHAGE DES RÉSULTATS
 st.markdown(f"### 📊 Recette pour {int(poids_cible)}g")
 
 col1, col2 = st.columns(2)
@@ -72,13 +78,14 @@ with col1:
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga", f"{math.ceil(p_eau_biga)} g")
     st.metric("Levure Biga", f"{round(p_lev_biga, 1)} g")
+    st.metric("Temp. Eau Biga", f"{int(t_eau_biga)} °C")
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Huile", f"{math.ceil(p_huile_g)} g")
-    st.metric("Sel", f"{math.ceil(p_sel_g)} g")
+    st.metric("Sel / Huile", f"{math.ceil(p_sel_g + p_huile_g)} g")
+    st.metric("Temp. Eau idéale", f"{int(t_eau_p2)} °C")
 
 st.divider()
-st.success(f"💰 Coût de revient par pâton : **{(cout_total_pate/nb_patons):.2f} €**")
+st.info(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €** | Friction : **+{friction:.1f}°C**")
