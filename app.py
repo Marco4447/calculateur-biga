@@ -12,12 +12,13 @@ st.markdown("""
     [data-testid="stMetricValue"] { color: #FF8C00 !important; font-weight: bold; font-size: 1.6rem !important; }
     section[data-testid="stSidebar"] { background-color: #1A1A1A; border-right: 1px solid #333; }
     .info-box { background-color: #262730; border-left: 5px solid #FF8C00; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .warning-box { background-color: #442222; border-left: 5px solid #FF4B4B; padding: 10px; border-radius: 5px; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
 
-# 2. PARAMÈTRES (SIDEBAR AVEC EXPANDERS)
+# 2. PARAMÈTRES (SIDEBAR)
 with st.sidebar:
     st.header("⚙️ Réglages")
 
@@ -32,19 +33,12 @@ with st.sidebar:
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
 
     with st.expander("🌡️ Températures & Friction", expanded=True):
-        # Dissociation J-1 et Jour J
         t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=20)
         t_amb_p2 = st.number_input("Temp. Ambiante Jour J (°C)", value=20)
         t_far = st.number_input("Temp. Farine (°C)", value=20)
         t_v1 = st.number_input("Temps V1 (min)", value=18)
         t_v2 = st.number_input("Temps V2 (min)", value=2)
         friction = (t_v1 * 0.5) + (t_v2 * 1.3)
-
-    with st.expander("💰 Coûts de Revient", expanded=False):
-        p_farine = st.number_input("Prix Farine (€/kg)", value=1.24)
-        p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
-        p_sel = st.number_input("Prix Sel (€/kg)", value=0.80)
-        p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
@@ -57,25 +51,25 @@ p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
 t_eau_biga = 55 - (t_amb_biga + t_far)
 
-# FORMULES DE FERMENTATION BIGA
-t_biga_finie = 41 - t_amb_biga
-duree_decimale = 30.5 - (0.69 * t_amb_biga)
-h_biga = int(duree_decimale)
-m_biga = int((duree_decimale - h_biga) * 60)
+# LOGIQUE DE FERMENTATION (Standard vs Canicule)
+if t_amb_biga > 27:
+    t_biga_finie = 14 # Sortie très froide préconisée
+    msg_repos = "⚠️ <b>Protocole Canicule :</b> 4h56 à TA puis 12h au frigo (4°C)"
+    box_class = "warning-box"
+else:
+    t_biga_finie = 41 - t_amb_biga
+    duree_dec = 30.5 - (0.69 * t_amb_biga)
+    h, m = int(duree_dec), int((duree_dec - int(duree_dec)) * 60)
+    msg_repos = f"⏳ <b>Repos :</b> {h}h{m:02d} à {t_amb_biga}°C"
+    box_class = "info-box"
 
 # PHASE 2 : RAFRAÎCHISSEMENT
-f_reste = farine_totale - p_far_biga
 eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
-p_sel_g = farine_totale * (sel_pct / 100)
-p_huile_g = farine_totale * (huile_pct / 100)
 t_eau_p2 = 72 - (t_amb_p2 + t_far + friction)
 
-# COÛT
-c_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure)
-
 # 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g soit {poids_total_kilos:.2f} kg de pâte")
+st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g ({poids_total_kilos:.2f} kg)")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -83,22 +77,17 @@ with col1:
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga", f"{math.ceil(p_eau_biga)} g")
     st.metric("Levure Biga", f"{round(p_lev_biga, 1)} g")
-    st.metric("Temp. eau de coulage Biga", f"{int(t_eau_biga)} °C")
+    st.metric("Temp. eau Biga", f"{int(t_eau_biga)} °C")
     
-    # NOUVELLE SECTION : PROTOCOLE DE FERMENTATION
-    st.markdown(f"""
-    <div class="info-box">
-    🎯 <b>Objectif fin de pétrissage :</b> {t_biga_finie}°C<br>
-    ⏳ <b>Repos :</b> {h_biga}h{m_biga:02d} à {t_amb_biga}°C
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class="{box_class}">
+    🎯 <b>Objectif fin de pétrissage :</b> {t_biga_finie}°C<br>{msg_repos}
+    </div>""", unsafe_allow_html=True)
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
-    st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
+    st.metric("Farine à ajouter", f"{math.ceil(farine_totale - p_far_biga)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Sel / Huile", f"{math.ceil(p_sel_g + p_huile_g)} g")
-    st.metric("Temp. eau de coulage phase 2", f"{int(t_eau_p2)} °C")
+    st.metric("Temp. eau phase 2", f"{int(t_eau_p2)} °C")
 
 st.divider()
-st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €** | Friction : **+{friction:.1f}°C**")
+st.info(f"Friction : +{friction:.1f}°C")
