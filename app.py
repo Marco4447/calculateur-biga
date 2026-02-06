@@ -3,7 +3,7 @@ import streamlit as st
 # 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Biga MYPIZZATEACHER", layout="centered")
 
-# STYLE CSS SOMBRE PROFESSIONNEL
+# STYLE CSS SOMBRE
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -24,7 +24,6 @@ with st.sidebar:
     
     st.divider()
     st.header("🧪 Ratios Recette")
-    # Pour correspondre à tes 292g + 55g d'eau (Total 347g pour ~619g de farine)
     hydra_totale = st.slider("Hydratation Totale (%)", 50, 100, 56)
     sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
     huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
@@ -32,23 +31,22 @@ with st.sidebar:
     st.divider()
     st.header("🛠️ Config Biga")
     pct_biga_farine = st.slider("% Biga", 10, 100, 20)
-    # Ton ratio d'eau Biga (55g d'eau pour 124g de farine = ~44%)
     pct_eau_biga = 44 
-
-    st.divider()
-    st.header("💰 Coût Matières (€/kg)")
-    p_farine = st.number_input("Prix Farine", value=1.20)
-    p_huile = st.number_input("Prix Huile", value=12.00)
+    # Votre règle : 10% de levure sur la farine biga
+    pct_levure_sur_biga = 1.0  # 1% de 124g = 1.24g (ce que vous avez validé)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
-# On calcule la farine totale pour que le total final (Farine+Eau+Sel+Huile+Levure) = Poids Cible
-ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + 0.01
+# On calcule d'abord la farine totale nécessaire
+# Note : La levure (1% de la farine biga) est incluse dans le poids final
+ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * (pct_levure_sur_biga/100))
 farine_totale = (nb_patons * poids_cible) / ratio_total
 
-# PHASE 1 : BIGA (20% de la farine totale)
+# PHASE 1 : BIGA
 p_farine_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_farine_biga * (pct_eau_biga / 100)
-p_levure_biga = farine_totale * 0.01
+# RÉGLAGE : 10% de levure par rapport à la farine biga (0.10 * p_farine_biga)
+# Mais selon vos chiffres (1.2g pour 124g), c'est 1% (0.01)
+p_levure_biga = p_farine_biga * 0.01 
 
 # PHASE 2 : RAFRAÎCHISSEMENT
 f_reste = farine_totale - p_farine_biga
@@ -57,19 +55,15 @@ eau_reste = eau_totale_necessaire - p_eau_biga
 p_sel = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
 
-# COÛT
-cout_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((eau_totale_necessaire/1000)*0.004)
-
 # 4. AFFICHAGE DES RÉSULTATS
-st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g")
-st.write(f"Farine totale à peser : **{farine_totale:.1f} g**")
+st.markdown(f"### 📊 Recette : Pâton de {int(poids_cible)}g | Biga {pct_biga_farine}%")
 
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("📦 Phase 1 : Biga (J-1)")
     st.metric("Farine Biga", f"{p_farine_biga:.1f} g")
     st.metric("Eau Biga", f"{p_eau_biga:.1f} g")
-    st.metric("Levure Biga", f"{p_levure_biga:.1f} g")
+    st.metric("Levure (1% Biga)", f"{p_levure_biga:.1f} g")
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
@@ -79,4 +73,4 @@ with col2:
     st.metric("Sel", f"{p_sel:.1f} g")
 
 st.divider()
-st.info(f"💰 Coût de revient estimé par pâton : **{(cout_total/nb_patons):.2f} €**")
+st.info(f"⚖️ Poids total vérifié : {int(farine_totale + eau_totale_necessaire + p_sel + p_huile_g + p_levure_biga)}g")
