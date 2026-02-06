@@ -30,8 +30,7 @@ with st.sidebar:
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
 
-    with st.expander("🌡️ Températures & Friction", expanded=True):
-        # Dissociation des jours J-1 et J pour plus de précision
+    with st.expander("🌡️ Températures & Friction", expanded=False):
         t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=22)
         t_amb_p2 = st.number_input("Temp. Ambiante Jour J (°C)", value=20)
         t_far = st.number_input("Temp. Farine (°C)", value=20)
@@ -46,15 +45,17 @@ with st.sidebar:
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
-# Calcul de la farine totale pour atteindre le poids final cible
+# Calcul pour obtenir le poids final précis
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
+
+# CALCUL DU POIDS TOTAL EN KILOS
+poids_total_kilos = (nb_patons * poids_cible) / 1000
 
 # PHASE 1 : BIGA
 p_far_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
-# Calcul température basé sur la règle de 55
 t_eau_biga = 55 - (t_amb_biga + t_far)
 
 # PHASE 2 : RAFRAÎCHISSEMENT
@@ -63,14 +64,14 @@ eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
 p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
-# Calcul Température Eau Phase 2 basé sur la règle de 72
 t_eau_p2 = 72 - (t_amb_p2 + t_far + friction)
 
 # CALCUL COÛT SÉCURISÉ
 c_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure)
 
-# 4. AFFICHAGE DES RÉSULTATS (ARRONDI SUPÉRIEUR)
-st.markdown(f"### 📊 Recette pour {int(poids_cible)}g")
+# 4. AFFICHAGE DES RÉSULTATS
+# TITRE DYNAMIQUE MIS À JOUR ICI
+st.markdown(f"### 📊 Recette pour {nb_patons} pâton(s) de {int(poids_cible)}g soit {poids_total_kilos:.2f} kg de pâte")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -78,7 +79,6 @@ with col1:
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga", f"{math.ceil(p_eau_biga)} g")
     st.metric("Levure Biga", f"{round(p_lev_biga, 1)} g")
-    # Nouveau libellé demandé
     st.metric("Température eau de coulage Biga", f"{int(t_eau_biga)} °C")
 
 with col2:
@@ -86,7 +86,6 @@ with col2:
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
     st.metric("Sel / Huile", f"{math.ceil(p_sel_g + p_huile_g)} g")
-    # Nouveau libellé demandé
     st.metric("Température eau de coulage phase 2", f"{int(t_eau_p2)} °C")
 
 st.divider()
