@@ -31,6 +31,7 @@ with st.sidebar:
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% de Biga dans l'empattement total", 10, 100, 100)
+        pct_eau_biga_fixe = 44 
 
     with st.expander("🌡️ Températures & Friction", expanded=True):
         t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=20)
@@ -47,16 +48,16 @@ with st.sidebar:
         p_sel = st.number_input("Prix Sel (€/kg)", value=0.80)
         p_levure = st.number_input("Prix Levure (€/kg)", value=9.99)
 
-# 3. MOTEUR DE CALCUL
+# 3. MOTEUR DE CALCUL INVERSÉ
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
 poids_total_kilos = (nb_patons * poids_cible) / 1000
 
 # PHASE 1 : BIGA
 p_far_biga = farine_totale * (pct_biga_farine / 100)
-p_eau_biga = p_far_biga * 0.44
+p_eau_biga = p_far_biga * (pct_eau_biga_fixe / 100)
 p_lev_biga = p_far_biga * 0.01 
-t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga) # Correction Syntaxique appliquée
+t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga)
 
 # LOGIQUE DE FERMENTATION
 if t_amb_biga > 27:
@@ -76,7 +77,7 @@ p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
 t_eau_p2 = 72 - (t_amb_p2 + t_far + friction_p2)
 
-# COÛT
+# CALCUL COÛT
 c_total = (((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + 
            ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure))
 
@@ -88,35 +89,41 @@ with col1:
     st.subheader("📦 Phase 1 : Biga")
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga (44%)", f"{math.ceil(p_eau_biga)} g")
-    st.metric("Température eau Biga", f"{max(int(t_eau_biga), 2)} °C") #
+    st.metric("Temp. eau coulage Biga", f"{max(int(t_eau_biga), 2)} °C")
     st.markdown(f'<div class="{box_style}">🎯 <b>Cible sortie :</b> 19-20°C<br>{msg_stockage}<br>⏱️ <b>Durée :</b> {h}h{m:02d}</div>', unsafe_allow_html=True)
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Temp. eau phase 2", f"{int(t_eau_p2)} °C") #
+    st.metric("Temp. eau coulage phase 2", f"{int(t_eau_p2)} °C")
 
 st.divider()
 st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €**")
 
-# 5. CONSEILS EXPERTS : L'EXPERTISE MYPIZZATEACHER
+# 5. L'EXPERTISE MYPIZZATEACHER
 st.subheader("🎓 L'expertise MYPIZZATEACHER")
 t1, t2, t3 = st.tabs(["🌾 Farine & W", "⚙️ Pétrissage", "❄️ Fermentation"])
 
 with t1:
     st.markdown("""
-    * **Force (W) :** Utilisez une farine de force **W 300 à 340** pour la biga. Elle doit supporter 16h-20h de fermentation sans s'effondrer.
-    * **Protéines :** Visez 13% à 14.5% pour une structure alvéolée maximale.
+    **Précision sur la Force (W) :**
+    * **Phase 1 (Biga) :** Utilisez impérativement une farine de force **W 300-340**. Elle doit supporter 16h-20h de fermentation à 18-19°C.
+    * **Phase 2 (Rafraîchi) :** * Pour une utilisation rapide (< 24h) : **W 240-260** pour plus de souplesse.
+        * Pour une maturation longue (24h-48h) : **W 300-320**.
+    * **Conseil Expert :** Utiliser la même farine W 300+ pour les deux phases sécurise votre réseau glutineux.
     """)
 with t2:
     st.markdown("""
-    * **Texture :** La biga doit être **grumeleuse** (type crumble). Ne cherchez jamais à former une boule lisse en phase 1.
-    * **Vitesse :** Pétrissez en vitesse 1 lente (4-5 min) pour oxygéner sans chauffer.
-    * **Sortie :** La température de **19-20°C** est la clé du parfum et de la force boulangère.
+    **Technique de Pétrissage :**
+    * **Aspect :** La biga doit être **grumeleuse** (type crumble). Ne formez jamais une boule lisse en phase 1.
+    * **Vitesse :** Pétrissez en vitesse 1 lente (4-5 min) pour oxygéner sans chauffer la masse.
+    * **Sortie :** La température cible de **19-20°C** est cruciale pour l'équilibre des arômes.
     """)
 with t3:
     st.markdown("""
-    * **Équilibre :** Entre 18°C et 19°C, vous favorisez les arômes lactiques. 
-    * **Danger :** Au-delà de 22°C, l'acidité acétique prend le dessus, ce qui fragilise le gluten lors du rafraîchissement.
+    **Gestion Thermique :**
+    * **Zone Idéale :** Entre **18°C et 19°C**. 
+    * **Danger :** Au-delà de **22°C**, l'acidité acétique (vinaigre) prend le dessus et fragilise le gluten.
+    * **Canicule :** Si TA > 27°C, utilisez impérativement une zone régulée ou cave à vin.
     """)
