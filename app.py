@@ -4,7 +4,7 @@ import math
 # 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Biga MYPIZZATEACHER - Expert", layout="centered")
 
-# STYLE CSS PERSONNALISÉ
+# STYLE CSS SOMBRE ET PROFESSIONNEL
 st.markdown("""
     <style>
     .stApp { background-color: #121212; color: #E0E0E0; }
@@ -23,8 +23,8 @@ st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow
 with st.sidebar:
     st.header("⚙️ Réglages")
     with st.expander("Poids du pâton", expanded=True):
-        nb_patons = st.number_input("Nombre de pâtons", value=90, min_value=1) # Défaut basé sur vos réglages
-        poids_cible = st.number_input("Poids d'un pâton fini (g)", value=280, step=10) #
+        nb_patons = st.number_input("Nombre de pâtons", value=90, min_value=1)
+        poids_cible = st.number_input("Poids d'un pâton fini (g)", value=280, step=10)
     
     with st.expander("🧪 Ratios & Config Biga", expanded=False):
         hydra_totale = st.slider("Hydratation totale (%)", 50, 100, 56)
@@ -33,19 +33,19 @@ with st.sidebar:
         pct_biga_farine = st.slider("% de Biga dans l'empattement total", 10, 100, 100)
 
     with st.expander("🌡️ Températures & Friction", expanded=True):
-        t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=20) #
+        t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=20)
         t_amb_p2 = st.number_input("Temp. Ambiante Jour J (°C)", value=20)
-        t_far = st.number_input("Temp. Farine (°C)", value=20) #
+        t_far = st.number_input("Temp. Farine (°C)", value=20)
         friction_biga = 2.0 
-        t_v1 = st.number_input("Temps V1 (min)", value=18) #
-        t_v2 = st.number_input("Temps V2 (min)", value=2) #
+        t_v1 = st.number_input("Temps V1 (min)", value=18)
+        t_v2 = st.number_input("Temps V2 (min)", value=2)
         friction_p2 = (t_v1 * 0.5) + (t_v2 * 1.3)
 
     with st.expander("💰 Coûts de Revient", expanded=False):
-        p_farine = st.number_input("Prix Farine (€/kg)", value=1.24) #
-        p_huile = st.number_input("Prix Huile (€/L)", value=12.00) 
-        p_sel = st.number_input("Prix Sel (€/kg)", value=0.80) #
-        p_levure = st.number_input("Prix Levure (€/kg)", value=9.99) #
+        p_farine = st.number_input("Prix Farine (€/kg)", value=1.24)
+        p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
+        p_sel = st.number_input("Prix Sel (€/kg)", value=0.80)
+        p_levure = st.number_input("Prix Levure (€/kg)", value=9.99)
 
 # 3. MOTEUR DE CALCUL
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
@@ -56,12 +56,11 @@ poids_total_kilos = (nb_patons * poids_cible) / 1000
 p_far_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
-# Correction de la syntaxe fermée
-t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga) 
+t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga) # Correction Syntaxique appliquée
 
 # LOGIQUE DE FERMENTATION
 if t_amb_biga > 27:
-    msg_stockage = "🚨 <b>ALERTE :</b> Stockage IMPÉRATIF en zone régulée (18-19°C)."
+    msg_stockage = "🚨 <b>STOCKAGE RÉGULÉ IMPÉRATIF :</b> Zone 18-19°C."
     duree_dec = 30.5 - (0.69 * 18.5) 
     box_style = "alert-box"
 else:
@@ -89,20 +88,20 @@ with col1:
     st.subheader("📦 Phase 1 : Biga")
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
     st.metric("Eau Biga (44%)", f"{math.ceil(p_eau_biga)} g")
-    st.metric("Temp. eau coulage Biga", f"{max(int(t_eau_biga), 2)} °C") #
+    st.metric("Température eau Biga", f"{max(int(t_eau_biga), 2)} °C") #
     st.markdown(f'<div class="{box_style}">🎯 <b>Cible sortie :</b> 19-20°C<br>{msg_stockage}<br>⏱️ <b>Durée :</b> {h}h{m:02d}</div>', unsafe_allow_html=True)
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{math.ceil(f_reste)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Temp. eau coulage phase 2", f"{int(t_eau_p2)} °C") #
+    st.metric("Temp. eau phase 2", f"{int(t_eau_p2)} °C") #
 
 st.divider()
-st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €**") #
+st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €**")
 
-# 5. CONSEILS EXPERTS : PÂTES INDIRECTES
-st.subheader("🎓 Expertise : La Biga selon Consultapizza")
+# 5. CONSEILS EXPERTS : L'EXPERTISE MYPIZZATEACHER
+st.subheader("🎓 L'expertise MYPIZZATEACHER")
 t1, t2, t3 = st.tabs(["🌾 Farine & W", "⚙️ Pétrissage", "❄️ Fermentation"])
 
 with t1:
