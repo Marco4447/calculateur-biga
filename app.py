@@ -16,16 +16,15 @@ st.markdown("""
 
 st.markdown('<h1 class="main-title">🔥 Biga MYPIZZATEACHER</h1>', unsafe_allow_html=True)
 
-# 2. PARAMÈTRES (SIDEBAR AVEC FLÈCHES)
+# 2. PARAMÈTRES (SIDEBAR AVEC EXPANDERS)
 with st.sidebar:
     st.header("⚙️ Réglages")
 
-    # MENU DÉROULANT 1
-    with st.expander("🍕 Format de la Recette", expanded=True):
+    # MENU MODIFIÉ ICI
+    with st.expander("Poids du pâton", expanded=True):
         nb_patons = st.number_input("Nombre de pâtons", value=1, min_value=1)
         poids_cible = st.number_input("Poids d'un pâton fini (g)", value=1000, step=10)
     
-    # MENU DÉROULANT 2
     with st.expander("🧪 Ratios & Config Biga", expanded=False):
         hydra_totale = st.slider("Hydratation Totale (%)", 50, 100, 56)
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
@@ -33,7 +32,6 @@ with st.sidebar:
         pct_biga_farine = st.slider("% Biga", 10, 100, 20)
         pct_eau_biga = 44 
 
-    # MENU DÉROULANT 3
     with st.expander("💰 Coûts de Revient", expanded=False):
         p_farine = st.number_input("Prix Farine (€/kg)", value=1.20)
         p_huile = st.number_input("Prix Huile (€/L)", value=12.00)
@@ -42,7 +40,6 @@ with st.sidebar:
         p_levure = st.number_input("Prix Levure (€/kg)", value=10.00)
 
 # 3. MOTEUR DE CALCUL INVERSÉ
-# Ratio = 1(Farine) + Hydra + Sel + Huile + Levure(1% de la partie Biga)
 ratio_total = 1 + (hydra_totale/100) + (sel_pct/100) + (huile_pct/100) + ((pct_biga_farine/100) * 0.01)
 farine_totale = (nb_patons * poids_cible) / ratio_total
 
@@ -58,7 +55,7 @@ eau_reste = eau_tot_besoin - p_eau_biga
 p_sel = farine_totale * (sel_pct / 100)
 p_huile = farine_totale * (huile_pct / 100)
 
-# 4. AFFICHAGE DES RÉSULTATS (AVEC ARRONDI SUPÉRIEUR)
+# 4. AFFICHAGE DES RÉSULTATS (ARRONDI SUPÉRIEUR)
 st.markdown(f"### 📊 Recette pour {int(poids_cible)}g")
 
 col1, col2 = st.columns(2)
@@ -76,6 +73,5 @@ with col2:
     st.metric("Sel", f"{math.ceil(p_sel)} g")
 
 st.divider()
-# CALCUL DU COÛT POUR L'INFO BOX
 cout_tot = ((farine_totale/1000)*p_farine) + ((p_huile/1000)*p_huile) + ((eau_tot_besoin/1000)*0.004)
 st.success(f"💰 Coût de revient par pâton : **{(cout_tot/nb_patons):.2f} €**")
