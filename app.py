@@ -29,14 +29,14 @@ with st.sidebar:
         sel_pct = st.slider("Sel (%)", 0.0, 5.0, 2.5, step=0.1)
         huile_pct = st.slider("Huile (%)", 0.0, 10.0, 3.0, step=0.1)
         pct_biga_farine = st.slider("% de Biga à utiliser dans l'empattement total", 10, 100, 20)
-        pct_eau_biga_ratio = 44 
 
-    with st.expander("🌡️ Températures & Friction", expanded=False):
-        t_amb = st.number_input("Temp. Ambiante (°C)", value=22)
+    # DISSOCIATION DES TEMPÉRATURES
+    with st.expander("🌡️ Températures & Friction", expanded=True):
+        t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=22)
+        t_amb_p2 = st.number_input("Temp. Ambiante Jour J (°C)", value=20)
         t_far = st.number_input("Temp. Farine (°C)", value=20)
-        # Friction calculée : 0.5 par min en V1 + 1.3 par min en V2
-        t_v1 = st.number_input("Temps V1 (min)", value=5)
-        t_v2 = st.number_input("Temps V2 (min)", value=8)
+        t_v1 = st.number_input("Temps V1 (min)", value=18)
+        t_v2 = st.number_input("Temps V2 (min)", value=2)
         friction = (t_v1 * 0.5) + (t_v2 * 1.3)
 
     with st.expander("💰 Coûts de Revient", expanded=False):
@@ -52,9 +52,9 @@ farine_totale = (nb_patons * poids_cible) / ratio_total
 
 # PHASE 1 : BIGA
 p_far_biga = farine_totale * (pct_biga_farine / 100)
-p_eau_biga = p_far_biga * (pct_eau_biga_ratio / 100)
+p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
-t_eau_biga = 55 - (t_amb + t_far)
+t_eau_biga = 55 - (t_amb_biga + t_far)
 
 # PHASE 2 : RAFRAÎCHISSEMENT
 f_reste = farine_totale - p_far_biga
@@ -62,12 +62,11 @@ eau_tot_besoin = farine_totale * (hydra_totale / 100)
 eau_reste = eau_tot_besoin - p_eau_biga
 p_sel_g = farine_totale * (sel_pct / 100)
 p_huile_g = farine_totale * (huile_pct / 100)
-# Calcul Température Eau Phase 2 (Base 72)
-t_eau_p2 = 72 - (t_amb + t_far + friction)
+# Calcul Température Eau Phase 2 (Base 72 avec Temp Jour J)
+t_eau_p2 = 72 - (t_amb_p2 + t_far + friction)
 
-# COÛT
-c_total = (((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + 
-           ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure))
+# CALCUL COÛT SÉCURISÉ
+c_total = ((farine_totale/1000)*p_farine) + ((p_huile_g/1000)*p_huile) + ((p_sel_g/1000)*p_sel) + ((p_lev_biga/1000)*p_levure)
 
 # 4. AFFICHAGE DES RÉSULTATS
 st.markdown(f"### 📊 Recette pour {int(poids_cible)}g")
@@ -88,4 +87,4 @@ with col2:
     st.metric("Temp. Eau idéale", f"{int(t_eau_p2)} °C")
 
 st.divider()
-st.info(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €** | Friction : **+{friction:.1f}°C**")
+st.success(f"💰 Coût de revient par pâton : **{(c_total/nb_patons):.2f} €** | Friction : **+{friction:.1f}°C**")
