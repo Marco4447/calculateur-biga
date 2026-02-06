@@ -12,7 +12,7 @@ st.markdown("""
     [data-testid="stMetricValue"] { color: #FF8C00 !important; font-weight: bold; font-size: 1.6rem !important; }
     section[data-testid="stSidebar"] { background-color: #1A1A1A; border-right: 1px solid #333; }
     .info-box { background-color: #262730; border-left: 5px solid #FF8C00; padding: 10px; border-radius: 5px; margin-top: 10px; }
-    .warning-box { background-color: #442222; border-left: 5px solid #FF4B4B; padding: 10px; border-radius: 5px; margin-top: 10px; }
+    .alert-box { background-color: #443311; border-left: 5px solid #FFD700; padding: 10px; border-radius: 5px; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -36,9 +36,7 @@ with st.sidebar:
         t_amb_biga = st.number_input("Temp. Ambiante J-1 (Biga) (°C)", value=20)
         t_amb_p2 = st.number_input("Temp. Ambiante Jour J (°C)", value=20)
         t_far = st.number_input("Temp. Farine (°C)", value=20)
-        # Friction pour la Biga (généralement faible car pétrissage court)
         friction_biga = 2.0 
-        # Friction Phase 2 (V1/V2)
         t_v1 = st.number_input("Temps V1 (min)", value=18)
         t_v2 = st.number_input("Temps V2 (min)", value=2)
         friction_p2 = (t_v1 * 0.5) + (t_v2 * 1.3)
@@ -52,23 +50,19 @@ poids_total_kilos = (nb_patons * poids_cible) / 1000
 p_far_biga = farine_totale * (pct_biga_farine / 100)
 p_eau_biga = p_far_biga * 0.44
 p_lev_biga = p_far_biga * 0.01 
-
-# --- AJUSTEMENT FORMULE BIGA (SORTIE 19-20°C) ---
-# TB pour Biga ajustée à 55 pour viser une sortie fraîche
 t_eau_biga = 55 - (t_amb_biga + t_far + friction_biga)
 
-# LOGIQUE DE FERMENTATION (SORTIE 19-20°C)
+# LOGIQUE DE STOCKAGE (ALERTE > 27°C)
 if t_amb_biga > 27:
-    t_biga_cible = 14 
-    msg_repos = "⚠️ <b>Protocole Canicule :</b> 4h56 à TA puis 12h au frigo (4°C)"
-    box_class = "warning-box"
+    msg_stockage = "🚨 <b>ALERTE TEMPÉRATURE :</b> TA trop élevée. Stockage IMPÉRATIF en zone régulée (18-19°C)."
+    duree_dec = 30.5 - (0.69 * 18.5) # Calcul basé sur la moyenne de la zone régulée
+    box_style = "alert-box"
 else:
-    # On vise une fermentation entre 18 et 19°C
-    t_biga_cible = 19.5 
+    msg_stockage = f"⏳ <b>Stockage :</b> Température ambiante ({t_amb_biga}°C)."
     duree_dec = 30.5 - (0.69 * t_amb_biga)
-    h, m = int(duree_dec), int((duree_dec - int(duree_dec)) * 60)
-    msg_repos = f"⏳ <b>Repos idéal (18-19°C) :</b> {h}h{m:02d}"
-    box_class = "info-box"
+    box_style = "info-box"
+
+h, m = int(duree_dec), int((duree_dec - int(duree_dec)) * 60)
 
 # PHASE 2 : RAFRAÎCHISSEMENT
 eau_tot_besoin = farine_totale * (hydra_totale / 100)
@@ -82,18 +76,20 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("📦 Phase 1 : Biga")
     st.metric("Farine Biga", f"{math.ceil(p_far_biga)} g")
-    st.metric("Eau Biga", f"{math.ceil(p_eau_biga)} g")
-    st.metric("Temp. eau coulage Biga", f"{max(int(t_eau_biga), 2)} °C") # Sécurité 2°C minimum
+    st.metric("Eau Biga (44%)", f"{math.ceil(p_eau_biga)} g")
+    st.metric("Température eau coulage Biga", f"{max(int(t_eau_biga), 2)} °C")
     
-    st.markdown(f"""<div class="{box_class}">
-    🎯 <b>Cible sortie pétrin :</b> {t_biga_cible}°C<br>{msg_repos}
+    st.markdown(f"""<div class="{box_style}">
+    🎯 <b>Cible sortie pétrin :</b> 19-20°C<br>
+    {msg_stockage}<br>
+    ⏱️ <b>Durée estimée :</b> {h}h{m:02d}
     </div>""", unsafe_allow_html=True)
 
 with col2:
     st.subheader("🥣 Phase 2 : Jour J")
     st.metric("Farine à ajouter", f"{math.ceil(farine_totale - p_far_biga)} g")
     st.metric("Eau à ajouter", f"{math.ceil(eau_reste)} g")
-    st.metric("Temp. eau coulage phase 2", f"{int(t_eau_p2)} °C")
+    st.metric("Température eau coulage phase 2", f"{int(t_eau_p2)} °C")
 
 st.divider()
 st.info(f"Friction estimée (Phase 2) : +{friction_p2:.1f}°C")
